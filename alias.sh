@@ -1,23 +1,38 @@
 # alias 'alias' to handle csh-style aliases
 unset -f __alias
 function __alias () {
-  #echo "function alias() called with ${#@} args:  ${@}"
   local E_BADARGS=65
-  case ${#@} in
-    0) # bareword 'alias', which means "print all aliases".  pipe through less for easier reading
-      \alias -p | less
-      ;;
-    1) # bash alias, or "alias -p"
-      \alias "${1}"
-      ;;
-    2) # assume csh alias. could also be a valid "alias -p <name>" but that's unlikely.  don't even bother checking for it
-      \alias "${1}"="${2}"
-      ;;
-    *) # assume this to be a csh alias that lacks '' or "" around the RHS.
-      local lhs=${1}
-      shift
-      \alias "${lhs}"='${@}'
-      ;;
-  esac
+
+  # echo "function alias() called with ${#@} args:  ${@}"
+
+  if [[ "$1" = "-p" ]];
+  then
+    \alias "${*}" | less
+  else
+    case ${#@} in
+      0) # bareword 'alias', which means "print all aliases".  pipe through less for easier reading
+        \alias -p | less
+        ;;
+      1) # bash alias, or "alias -p"
+        \alias "${1}"
+        ;;
+      *) # csh alias
+        local lhs=${1}
+        local rhs="${@:2}"
+
+        ## if csh's !* operator is detected in alias and it's not at the end of the alias (allowing for ;" or ;' after it)
+        ## then the alias needs to be converted to a function, and !* needs to be converted to $@
+        if [[ ${rhs} =~ \!\*(.*)$ && ${BASH_REMATCH[1]} =~ [^\"\'\;] ]];
+        then
+          rhs=${rhs/\!\*/\$\@} # convert !* to $@
+          [[ ${rhs} =~ ^([\"\']) ]] && { rhs=${rhs%${BASH_REMATCH[1]}}; rhs=${rhs#${BASH_REMATCH[1]}}; } # remove enclosing ' or "
+          rhs=${rhs%;} # remove trailing ;
+          eval "function ${lhs} { ${rhs}; }"
+        else ## normal alias
+          \alias "${lhs}"="${rhs}"
+        fi
+        ;;
+    esac
+  fi
 }
 alias alias=__alias
