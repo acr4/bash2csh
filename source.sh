@@ -9,7 +9,7 @@ function __source () {
   alias=$(mktemp -t alias.`hostname`.XXXXXX)
 
   ## clean up femp files and internal functions
-  trap "\rm -f ${env} ${alias} && unset read_env read_alias csource ksource" RETURN
+  trap "\rm -f ${env} ${alias} && unset read_env read_alias csource ksource; trap - RETURN" RETURN
 
 
   ## read environment variables from file and export them to environment
