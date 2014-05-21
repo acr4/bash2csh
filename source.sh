@@ -1,8 +1,18 @@
 # -*- mode: shell-script -*-
 
+# This file is sourced to load into the environment.  If changes are made, it could be re-sourced.
+# But what happens if this file has a bug and needs to be resourced?  The simplest solution is to
+# unset the function (or easier yet, just 'unalias source').  But that requires the user to remember
+# to do so.  Instead, add some introspection.  This script remembers its name, and then if it is re-
+# sourced, the fancy stuff is skipped (besides, it is guaranteed that it's a Bash script!).
+called=$_
+
 # alias 'source' to handle sourcing csh-style files
 unset -f __source
 function __source () {
+
+  ## Introspection:
+  [[ $1 -ef $called ]] && { \source $*; return; }
 
   ## temp files
   env=$(mktemp -t env.`hostname`.XXXXXX)
@@ -49,7 +59,11 @@ function __source () {
 
   ##############################################################################
   ## Real work here
-  if bash -n $* 2>/dev/null;
+  if test \! -e $1;
+  then
+    echo "File $1 does not exist"
+    return 1
+  elif bash -n $* 2>/dev/null;
   then
     \source $*
   elif csh -n $* 2>/dev/null;
@@ -61,8 +75,11 @@ function __source () {
   else
     echo "Unable to source $1:"
     file $1
+    return 1
   fi
 
 
 }
 alias source=__source
+
+unset called
