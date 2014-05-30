@@ -2,6 +2,8 @@
 unset -f __alias
 function __alias () {
   local E_BADARGS=65
+  local extglob=$(shopt -p extglob) # get original value of extglob in a string that can be eval'ed later
+  shopt -s extglob # unconditionally set extglob for extended globbing
 
   # echo "function alias() called with ${#@} args:  ${@}"
 
@@ -24,7 +26,7 @@ function __alias () {
         ## then the alias needs to be converted to a function, and !* needs to be converted to $@
         if [[ ${rhs} =~ \!\*(.*)$ && ${BASH_REMATCH[1]} =~ [^\"\'\;] ]];
         then
-          rhs=${rhs/\!\*/\$\@} # convert !* to $@
+          rhs=${rhs/?(\\)\!\*/\$\@} # convert !* or \!* to $@
           [[ ${rhs} =~ ^([\"\']) ]] && { rhs=${rhs%${BASH_REMATCH[1]}}; rhs=${rhs#${BASH_REMATCH[1]}}; } # remove enclosing ' or "
           rhs=${rhs%;} # remove trailing ;
           eval "function ${lhs} { ${rhs}; }"
@@ -34,5 +36,7 @@ function __alias () {
         ;;
     esac
   fi
+
+  eval "$extglob" # restore former extglob value
 }
 alias alias=__alias
