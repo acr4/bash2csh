@@ -21,6 +21,7 @@ function __alias () {
       *) # csh alias
         local lhs=${1}
         local rhs="${@:2}"
+        local term # terminating charater
 
         ## if csh's !* operator is detected in alias and it's not at the end of the alias (allowing for ;" or ;' after it)
         ## then the alias needs to be converted to a function, and !* needs to be converted to $@
@@ -28,8 +29,9 @@ function __alias () {
         then
           rhs=${rhs/?(\\)\!\*/\$\@} # convert !* or \!* to $@
           [[ ${rhs} =~ ^([\"\']) ]] && { rhs=${rhs%${BASH_REMATCH[1]}}; rhs=${rhs#${BASH_REMATCH[1]}}; } # remove enclosing ' or "
-          rhs=${rhs%;} # remove trailing ;
-          eval "function ${lhs} { ${rhs}; }"
+          ## Now figure out if we need to add a terminating ';'.  csh alias may already end in '&', ';', or nothing at all.
+          [[ ${rhs} =~ [\&\;][[:space:]]*$ ]] || term=";"
+          eval "function ${lhs} { ${rhs}${term} }"
         else ## normal alias
           \alias "${lhs}"="${rhs}"
         fi
