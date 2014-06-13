@@ -43,7 +43,7 @@ function __source () {
   ## source csh files
   function csource ()
   {
-    (exec csh -f -c "source $* && env >${env} && alias >${alias}")
+    (exec tcsh -f -c "source $* && env >${env} && alias >${alias}")
     read_env
     read_alias
   }
