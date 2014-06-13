@@ -28,7 +28,7 @@ function __source () {
     while read line;
     do
       export "$line"
-    done < <(cat ${env})
+    done <${env}
   }
 
   ## Read aliases from file and import them (maybe convert to functions)
@@ -37,7 +37,7 @@ function __source () {
     while read line;
     do
       alias $line
-    done < <(cat ${alias})
+    done <${alias}
   }
 
   ## source csh files
