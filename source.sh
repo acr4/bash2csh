@@ -7,12 +7,12 @@
 # sourced, the fancy stuff is skipped (besides, it is guaranteed that it's a Bash script!).
 called=$_
 
-# alias 'source' to handle sourcing csh-style files
-unset -f __source
-function __source () {
+enable -n source
+alias .=source
+function source () {
 
   ## Introspection:
-  [[ $1 -ef $called ]] && { \source $*; return; }
+  [[ $1 -ef $called ]] && { \. $*; return; }
 
   ## temp files
   env=$(mktemp -t env.`hostname`.XXXXXX)
@@ -65,8 +65,8 @@ function __source () {
     return 1
   elif bash -n $* 2>/dev/null;
   then
-    \source $*
-  elif csh -n $* 2>/dev/null;
+    \. $*
+  elif tcsh -n $* 2>/dev/null;
   then
     csource $*
   elif ksh -n $* 2>/dev/null;
@@ -80,6 +80,4 @@ function __source () {
 
 
 }
-alias source=__source
-
 unset called
