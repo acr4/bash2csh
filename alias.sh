@@ -1,6 +1,6 @@
-# alias 'alias' to handle csh-style aliases
-unset -f __alias
-function __alias () {
+# Create a function to overload alias
+unset -f alias
+function alias () {
   local E_BADARGS=65
   local extglob=$(shopt -p extglob) # get original value of extglob in a string that can be eval'ed later
   shopt -s extglob # unconditionally set extglob for extended globbing
@@ -9,14 +9,14 @@ function __alias () {
 
   if [[ "$1" = "-p" ]];
   then
-    \alias "${*}" | less
+    builtin alias "${*}" | less
   else
     case ${#@} in
       0) # bareword 'alias', which means "print all aliases".  pipe through less for easier reading
-        \alias -p | less
+        builtin alias -p | less
         ;;
       1) # bash alias, or "alias -p"
-        \alias "${1}"
+        builtin alias "${1}"
         ;;
       *) # csh alias
         local lhs=${1}
@@ -33,7 +33,7 @@ function __alias () {
           [[ ${rhs} =~ [\&\;][[:space:]]*$ ]] || term=";"
           eval "function ${lhs} { ${rhs}${term} }"
         else ## normal alias
-          \alias "${lhs}"="${rhs}"
+          builtin alias "${lhs}"="${rhs}"
         fi
         ;;
     esac
@@ -41,4 +41,3 @@ function __alias () {
 
   eval "$extglob" # restore former extglob value
 }
-alias alias=__alias
