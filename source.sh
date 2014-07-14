@@ -15,12 +15,19 @@ function source () {
   [[ $1 -ef $called ]] && { \. $*; return; }
 
   ## temp files
-  env=$(mktemp -t env.`hostname`.XXXXXX)
-  alias=$(mktemp -t alias.`hostname`.XXXXXX)
+  env=$(mktemp -t env.XXXXXX)
+  alias=$(mktemp -t alias.XXXXXX)
 
   ## clean up femp files and internal functions
   trap "\rm -f ${env} ${alias} && unset read_env read_alias csource ksource; trap - RETURN" RETURN
 
+
+  ## Unset Bash's exported functions before exec'ing another shell.
+  ## This simplifies parsing environment later, as env entries will be only 1 line
+  function unset_env_funcs()
+  {
+    eval `env | sed -rn 's/^(\S+)=\(\).*/unset -f \1/p'`
+  }
 
   ## read environment variables from file and export them to environment
   function read_env()
@@ -43,7 +50,7 @@ function source () {
   ## source csh files
   function csource ()
   {
-    (exec tcsh -f -c "source $* && env >${env} && alias >${alias}")
+    (unset_env_funcs; exec tcsh -f -c "source $* && env >${env} && alias >${alias}")
     read_env
     read_alias
   }
@@ -51,7 +58,7 @@ function source () {
   ## source ksh files
   function ksource ()
   {
-    (exec ksh -c ". $* && env >${env} && alias >${alias}")
+    (unset_env_funcs; exec ksh -c ". $* && env >${env} && alias >${alias}")
     read_env
     read_alias
   }
