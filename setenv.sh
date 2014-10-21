@@ -4,7 +4,7 @@
 # Map 'setenv' commands from csh to bash 'export'
 unset setenv
 function setenv () {
-  export ${1}=${2}
+  export ${1}="${2}"
 }
 
 
