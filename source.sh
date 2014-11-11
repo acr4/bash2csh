@@ -76,6 +76,9 @@ function source () {
   elif tcsh -n $* 2>/dev/null;
   then
     csource $*
+  elif csh -n $* 2>/dev/null;
+  then
+    csource $*
   elif ksh -n $* 2>/dev/null;
   then
     ksource $*
