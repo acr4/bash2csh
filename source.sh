@@ -26,7 +26,7 @@ function source () {
   ## This simplifies parsing environment later, as env entries will be only 1 line
   function unset_env_funcs()
   {
-    eval `env | sed -rn 's/^(\S+)=\(\).*/unset -f \1/p'`
+    eval `declare -F | sed -nr 's/^declare -fx/unset -f/p'`
   }
 
   ## read environment variables from file and export them to environment
