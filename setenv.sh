@@ -4,7 +4,13 @@
 # Map 'setenv' commands from csh to bash 'export'
 unset setenv
 function setenv () {
-  export ${1}="${2}"
+  # if no arguments, then print environment
+  if [[ -z ${1} ]]
+  then
+    env
+  else
+    export ${1}="${2}"
+  fi
 }
 
 
