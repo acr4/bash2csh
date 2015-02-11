@@ -28,6 +28,7 @@ function alias () {
         if [[ ${rhs} =~ \!\*(.*)$ && ${BASH_REMATCH[1]} =~ [^\"\'\;] ]];
         then
           rhs=${rhs/?(\\)\!\*/\$\@} # convert !* or \!* to $@
+          rhs=${rhs// ?(c|tc|z)sh/ bash} # replace shell with bash
           [[ ${rhs} =~ ^([\"\']) ]] && { rhs=${rhs%${BASH_REMATCH[1]}}; rhs=${rhs#${BASH_REMATCH[1]}}; } # remove enclosing ' or "
           ## Now figure out if we need to add a terminating ';'.  csh alias may already end in '&', ';', or nothing at all.
           [[ ${rhs} =~ [\&\;][[:space:]]*$ ]] || term=";"
