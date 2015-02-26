@@ -66,10 +66,25 @@ function source () {
 
   ##############################################################################
   ## Real work here
+
+  # if first line starts with #!, then get specified program and execute that
+  local -rA PROGS=([bash]=\.
+                   [sh]=\.
+                   [csh]=csource
+                   [tcsh]=csource
+                   [ksh]=ksource
+                   )
+  local prog=$(sed -n '1!b;s/^#\!.*\///p' $*)
+  [[ $prog ]] && prog=${PROGS[$prog]}
+
+
   if test \! -e $1;
   then
     echo "File $1 does not exist"
     return 1
+  elif [[ -n $prog ]];
+  then
+    eval $prog $*
   elif bash -n $* 2>/dev/null;
   then
     \. $*
