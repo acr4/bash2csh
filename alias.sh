@@ -34,6 +34,7 @@ function alias () {
           [[ ${rhs} =~ [\&\;][[:space:]]*$ ]] || term=";"
           eval "function ${lhs} { ${rhs}${term} }"
         else ## normal alias
+          rhs=${rhs/\!\*/} # Delete any \!* first, they have no place in bash aliases
           builtin alias "${lhs}"="${rhs}"
         fi
         ;;
