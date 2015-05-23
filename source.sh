@@ -26,7 +26,7 @@ function source () {
   ## This simplifies parsing environment later, as env entries will be only 1 line
   function unset_env_funcs()
   {
-    eval `declare -F | sed -nr 's/^declare -fx/unset -f/p'`
+    eval `declare -F | sed -n 's/^declare -fx/unset -f/p'`
   }
 
   ## read environment variables from file and export them to environment
@@ -74,7 +74,7 @@ function source () {
                    [tcsh]=csource
                    [ksh]=ksource
                    )
-  local prog=$(sed -n '1!b;s/^#\!.*\///p' $*)
+  local prog=$(sed -n -e '1!b' -e 's/^#\!.*\///p' $*)
   [[ $prog ]] && prog=${PROGS[$prog]}
 
 
