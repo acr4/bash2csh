@@ -25,3 +25,24 @@ function unsetenv () {
   done < <(env | \grep -Eo ^[^=]+)
   :
 }
+
+
+# Detect csh-style set:
+# set var=val
+# set var="array"
+unset set
+function set() {
+  if [[ $* =~ ^([^=]+)=(.*)$ ]]
+  then
+    var=${BASH_REMATCH[1]}
+    val=${BASH_REMATCH[2]}
+    if [[ $val =~ ' ' ]]
+    then
+      eval "$var=($val)"
+    else
+      eval "$var=$val"
+    fi
+  else
+    command set $@
+  fi
+}
