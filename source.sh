@@ -15,11 +15,12 @@ function source () {
   [[ $1 -ef $called ]] && { \. $*; return; }
 
   ## temp files
-  env=$(mktemp -t env.XXXXXX)
+  env_pre=$(mktemp -t env.XXXXXX)
+  env_post=$(mktemp -t env.XXXXXX)
   alias=$(mktemp -t alias.XXXXXX)
 
   ## clean up femp files and internal functions
-  trap "\rm -f ${env} ${alias} && unset read_env read_alias csource ksource; trap - RETURN" RETURN
+  trap "\rm -f ${env_pre} ${env_post} ${alias} && unset read_env read_alias csource ksource; trap - RETURN" RETURN
 
 
   ## Unset Bash's exported functions before exec'ing another shell.
@@ -32,10 +33,18 @@ function source () {
   ## read environment variables from file and export them to environment
   function read_env()
   {
-    while read line;
-    do
+    # Also apply final variables in this loop
+    declare -A post
+    while read line; do
+      post[${line%%=*}]=1
       export "$line"
-    done <${env}
+    done <${env_post}
+
+    # Now compute (pre \ post) and remove env variables that were unset in the subshell
+    while read line; do
+      key=${line%%=*}
+      [[ ${post[$key]} ]] || unset $key
+    done <${env_pre}
   }
 
   ## Read aliases from file and import them (maybe convert to functions)
@@ -50,7 +59,7 @@ function source () {
   ## source csh files
   function csource ()
   {
-    (unset_env_funcs; exec tcsh -f -c "source $* && env >${env} && alias >${alias}")
+    (unset_env_funcs; exec tcsh -f -c "env >${env_pre} && source $* && env >${env_post} && alias >${alias}")
     read_env
     read_alias
   }
@@ -58,7 +67,7 @@ function source () {
   ## source ksh files
   function ksource ()
   {
-    (unset_env_funcs; exec ksh -c ". $* && env >${env} && alias >${alias}")
+    (unset_env_funcs; exec ksh -c "env ${env_pre} && . $* && env >${env_post} && alias >${alias}")
     read_env
     read_alias
   }
