@@ -29,7 +29,8 @@ function unsetenv () {
 
 # Detect csh-style set:
 # set var=val
-# set var="array"
+# set var="string"
+# set var=(array) <-- Bash won't process this :(
 unset set
 function set() {
   if [[ $* =~ ^([^=]+)=(.*)$ ]]
@@ -38,7 +39,7 @@ function set() {
     val=${BASH_REMATCH[2]}
     if [[ $val =~ ' ' ]]
     then
-      eval "$var=($val)"
+      eval "$var='$val'"
     else
       eval "$var=$val"
     fi
