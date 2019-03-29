@@ -83,7 +83,7 @@ function source () {
                    [tcsh]=csource
                    [ksh]=ksource
                    )
-  local prog=$(sed -n -e '1!b' -e 's/^#\!.*\///p' $*)
+  local prog=$(sed -n -e '1!b' -e 's/^#\!.*\///p' $1)
   [[ $prog ]] && prog=${PROGS[$prog]}
 
 
