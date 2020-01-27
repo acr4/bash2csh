@@ -77,8 +77,8 @@ function source () {
   ## Real work here
 
   # if first line starts with #!, then get specified program and execute that
-  local -rA PROGS=([bash]=\.
-                   [sh]=\.
+  local -rA PROGS=([bash]=\\.
+                   [sh]=\\.
                    [csh]=csource
                    [tcsh]=csource
                    [ksh]=ksource
