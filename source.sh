@@ -9,7 +9,7 @@ called=$_
 
 enable -n source
 alias .=source
-function source () {
+function source {
 
   ## Introspection:
   [[ $1 -ef $called ]] && { \. $*; return; }
@@ -25,13 +25,13 @@ function source () {
 
   ## Unset Bash's exported functions before exec'ing another shell.
   ## This simplifies parsing environment later, as env entries will be only 1 line
-  function unset_env_funcs()
+  function unset_env_funcs
   {
     eval `declare -F | sed -n 's/^declare -fx/unset -f/p'`
   }
 
   ## read environment variables from file and export them to environment
-  function read_env()
+  function read_env
   {
     # Also apply final variables in this loop
     declare -A post
@@ -48,7 +48,7 @@ function source () {
   }
 
   ## Read aliases from file and import them (maybe convert to functions)
-  function read_alias()
+  function read_alias
   {
     while read line;
     do
@@ -57,7 +57,7 @@ function source () {
   }
 
   ## source csh files
-  function csource ()
+  function csource
   {
     (unset_env_funcs; exec tcsh -f -c "env >${env_pre} && source $* && env >${env_post} && alias >${alias}")
     retval=$?
@@ -69,7 +69,7 @@ function source () {
   }
 
   ## source ksh files
-  function ksource ()
+  function ksource
   {
     (unset_env_funcs; exec ksh -c "env >${env_pre} && . $* && env >${env_post} && alias >${alias}")
     retval=$?
