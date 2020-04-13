@@ -56,22 +56,13 @@ function source {
     done <${alias}
   }
 
-  ## source csh files
-  function csource
+  ## source in a sub-shell
+  function source_in_subshell
   {
-    (unset_env_funcs; exec tcsh -f -c "env >${env_pre} && source $* && env >${env_post} && alias >${alias}")
-    retval=$?
-    if [[ $retval = 0 ]]; then
-      read_env
-      read_alias
-    fi
-    return $retval
-  }
+    subshell=$1
+    shift
 
-  ## source ksh files
-  function ksource
-  {
-    (unset_env_funcs; exec ksh -c "env >${env_pre} && . $* && env >${env_post} && alias >${alias}")
+    (unset_env_funcs; eval "exec $subshell \"env >${env_pre} && source $* && env >${env_post} && alias >${alias}\"")
     retval=$?
     if [[ $retval = 0 ]]; then
       read_env
@@ -107,13 +98,13 @@ function source {
     \. $*
   elif tcsh -n $* 2>/dev/null;
   then
-    csource $*
+    source_in_subshell "tcsh -f -c" $*
   elif csh -n $* 2>/dev/null;
   then
-    csource $*
+    source_in_subshell "tcsh -f -c" $*
   elif ksh -n $* 2>/dev/null;
   then
-    ksource $*
+    source_in_subshell "ksh" $*
   else
     echo "Unable to source $1:"
     file $1
