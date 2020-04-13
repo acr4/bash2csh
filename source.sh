@@ -60,16 +60,24 @@ function source () {
   function csource ()
   {
     (unset_env_funcs; exec tcsh -f -c "env >${env_pre} && source $* && env >${env_post} && alias >${alias}")
-    read_env
-    read_alias
+    retval=$?
+    if [[ $retval = 0 ]]; then
+      read_env
+      read_alias
+    fi
+    return $retval
   }
 
   ## source ksh files
   function ksource ()
   {
-    (unset_env_funcs; exec ksh -c "env ${env_pre} && . $* && env >${env_post} && alias >${alias}")
-    read_env
-    read_alias
+    (unset_env_funcs; exec ksh -c "env >${env_pre} && . $* && env >${env_post} && alias >${alias}")
+    retval=$?
+    if [[ $retval = 0 ]]; then
+      read_env
+      read_alias
+    fi
+    return $retval
   }
 
 
