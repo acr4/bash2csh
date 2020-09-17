@@ -20,7 +20,7 @@ function source {
   alias=$(mktemp -t alias.XXXXXX)
 
   ## clean up femp files and internal functions
-  trap "\rm -f ${env_pre} ${env_post} ${alias} && unset read_env read_alias csource ksource; trap - RETURN" RETURN
+  trap "\rm -f ${env_pre} ${env_post} ${alias} && unset read_env read_alias source_in_subshell" INT TERM EXIT RETURN
 
 
   ## Unset Bash's exported functions before exec'ing another shell.
@@ -61,7 +61,6 @@ function source {
   {
     subshell=$1
     shift
-
     (unset_env_funcs; eval "exec $subshell \"env >${env_pre} && source $* && env >${env_post} && alias >${alias}\"")
     retval=$?
     if [[ $retval = 0 ]]; then
@@ -75,42 +74,29 @@ function source {
   ##############################################################################
   ## Real work here
 
-  # if first line starts with #!, then get specified program and execute that
+  # Lookup table of [shell names] = "command to execute"
   local -rA PROGS=([bash]=\\.
                    [sh]=\\.
-                   [csh]=csource
-                   [tcsh]=csource
-                   [ksh]=ksource
-                   )
-  local prog=$(sed -n -e '1!b' -e 's/^#\!.*\///p' $1)
-  [[ $prog ]] && prog=${PROGS[$prog]}
+                   [csh]='source_in_subshell "tcsh -f -c"'
+                   [tcsh]='source_in_subshell "tcsh -f -c"'
+                   [ksh]='source_in_subshell "ksh -f -c"'
+                  )
 
+  # If first line starts with #!, then get specified program and execute that
+  local prog=$(sed -n -e '1!b' -e 's/^#\!.*\///p' $1 2>/dev/null)
 
-  if test \! -e $1;
-  then
-    echo "File $1 does not exist"
-    return 1
-  elif [[ -n $prog ]];
-  then
-    eval $prog $*
-  elif bash -n $* 2>/dev/null;
-  then
-    \. $*
-  elif tcsh -n $* 2>/dev/null;
-  then
-    source_in_subshell "tcsh -f -c" $*
-  elif csh -n $* 2>/dev/null;
-  then
-    source_in_subshell "tcsh -f -c" $*
-  elif ksh -n $* 2>/dev/null;
-  then
-    source_in_subshell "ksh" $*
-  else
-    echo "Unable to source $1:"
-    file $1
-    return 1
+  if   test \! -e $1;          then echo "File $1 does not exist"; return 1 # File doesn't exist
+  elif [[ -n $prog ]];         then :                                       # File told us what it is
+  elif bash -n $* 2>/dev/null; then prog=bash                               # [shell] will accept it
+  elif tcsh -n $* 2>/dev/null; then prog=tcsh                               #   " "
+  elif csh  -n $* 2>/dev/null; then prog=csh                                #   " "
+  elif ksh  -n $* 2>/dev/null; then prog=ksh                                #   " "
+  else                         echo "Unable to source $(file $1)"; return 1 # File doesn't exist
   fi
 
+  # Convert [shell name] to "command to execute", and evaluate the result (execute it!)
+  [[ $prog ]] && prog=${PROGS[$prog]}
+  eval "$prog $*"
 
 }
 unset called
