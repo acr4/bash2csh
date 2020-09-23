@@ -83,7 +83,7 @@ function source {
                   )
 
   # If first line starts with #!, then get specified program and execute that
-  local prog=$(sed -n -e '1!b' -e 's/^#\!.*\///p' $1 2>/dev/null)
+  local prog=$(sed -n -e '1!b' -e 's/ $//g' -e 's/^#\!.*\///p' $1 2>/dev/null)
 
   if   test \! -e $1;          then echo "File $1 does not exist"; return 1 # File doesn't exist
   elif [[ -n $prog ]];         then :                                       # File told us what it is
