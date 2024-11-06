@@ -63,10 +63,8 @@ function source {
     shift
     (unset_env_funcs; eval "exec $subshell \"env >${env_pre} && source $* && env >${env_post} && alias >${alias}\"")
     retval=$?
-    if [[ $retval = 0 ]]; then
-      read_env
-      read_alias
-    fi
+    read_env
+    read_alias
     return $retval
   }
 
